@@ -97,15 +97,16 @@ const CAT_COLORS = {comercial:'#FF8A00',ventas:'#FF8A00',retail:'#FF8A00',tecnic
 
 let jobsData = [], activeCategory = 'all', searchQuery = '';
 const $ = id => document.getElementById(id);
+function norm(s){return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');}
 
 function esc(s){return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function colorOf(cat){const l = String(cat || '').toLowerCase(); for (const [k,v] of Object.entries(CAT_COLORS)) if (l.includes(k)) return v; return '#999999';}
+function colorOf(cat){const l = norm(cat); for (const [k,v] of Object.entries(CAT_COLORS)) if (l.includes(norm(k))) return v; return '#999999';}
 
 function renderJobs(){
-  const q = searchQuery, cat = activeCategory.toLowerCase();
+  const q = norm(searchQuery), cat = norm(activeCategory);
   const list = jobsData.filter(j => {
-    const catTxt = String(j.cat || '').toLowerCase();
-    const txt = `${j.cargo || ''} ${j.empresa || ''} ${catTxt}`.toLowerCase();
+    const catTxt = norm(j.cat);
+    const txt = norm(`${j.cargo || ''} ${j.empresa || ''} ${j.cat || ''}`);
     return txt.includes(q) && (cat === 'all' || catTxt.includes(cat));
   });
   $('jobCount').textContent = `${list.length} vacante${list.length === 1 ? '' : 's'} disponible${list.length === 1 ? '' : 's'}`;
@@ -122,7 +123,7 @@ function renderJobs(){
   }).join('');
 }
 
-$('searchInput').addEventListener('input', e => { searchQuery = e.target.value.toLowerCase().trim(); renderJobs(); });
+$('searchInput').addEventListener('input', e => { searchQuery = norm(e.target.value.trim()); renderJobs(); });
 document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
   b.classList.add('active'); activeCategory = b.dataset.cat; renderJobs();
